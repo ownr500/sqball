@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <!--<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>-->
+    <title>Exmpale3</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <style>
+        :root {
+            --ball-radius: 32px;
+        }
+        
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        
+        body {
+            width: 100%;
+            height: 100%;
+        }
+       
+
+        div#output {
+            color: black;
+            background-color: lightblue;
+        }
+        
+        
+        .rect {
+            width: 480px;
+            height: 480px;
+            border: 5px solid #000;
+        }
+
+
+        img {
+            border-radius: 50%;
+            width: calc(var(--ball-radius) * 2);
+            height: calc(var(--ball-radius) * 2);
+        }
+        #rb {
+            padding-left: 240px;
+            padding-top: 0px;
+        }        
+        .rotating {
+            animation: rotate 5s infinite linear;
+        }
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(359deg);
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div id="output"></div>
+    
+    <div class="rect">
+        <div id="rb">
+            <img src="r.jpg" class="rotating" />
+        </div>
+    </div>
+    
+    <script>
+        
+    $(document).ready(function () {        
+        let alpha = toRad(72); // стартовый угол полёта мяча [0, 360), [0, 2*PI)
+        let r = +(window.getComputedStyle($('img')[0]).width.split('px')[0]) / 2; //
+        console.log('r=', r);
+        let victory = 3; // примерный шаг движения мяча под углом ("скорость"), в пикселях
+        let w = 480; ///
+        let h = 480; ///
+        
+        function sleep (ms) { // TODO: Move to deps/js/common.js
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        function toRad (deg) {
+            return deg / 180 * Math.PI;
+        }
+        
+        function check1 (x, y) {
+            return ((x-0) <= r) ? 1 : 0;
+        }
+        
+        function check2 (x, y) {
+            return ((y-0) <= r) ? 1 : 0;
+        }
+        
+        function check3 (x, y) {
+            return ((w-x) <= r || x>w) ? 1 : 0;
+        }
+        
+        function check4 (x, y) {
+            return ((h-y) <= r || y>h) ? 1 : 0;
+        }
+        
+        /**
+         * Возвращает 0 или код стены, которой достиг мяч:
+         *  1 - левая стена,
+         *  2 - верхняя стена,
+         *  3 - правая стена,
+         *  4 - нижняя стена,
+         *  5 - угол между стенами 4 и 1,
+         *  6 - угол между стенами 1 и 2,
+         *  7 - угол между стенами 2 и 3,
+         *  8 - угол между стенами 3 и 4,
+         *  -1 - заблокированное состояние
+         *  -2 - ошибочное состояние
+         */
+        function checkBorder (x, y) {
+            let nearBorders = [check1(x, y), check2(x, y), check3(x, y), check4(x, y)];
+            let sum = nearBorders[0] + nearBorders[1] + nearBorders[2] + nearBorders[3];
+            if (sum == 0) {
+                return 0;
+            }
+            if (sum > 2) { // мяч заблокирован
+                return -1;
+            }
+            if (sum = 1) { // мяч у стены
+                return nearBorders.indexOf(1) + 1;
+            } else {  // мяч в углу (у двух стен)
+                if (nearBorders[3] == 1 && nearBorders[0] == 1) {
+                    return 5;
+                } else if (nearBorders[0] == 1 && nearBorders[1] == 1) {
+                    return 6;
+                } else if (nearBorders[1] == 1 && nearBorders[2] == 1) {
+                    return 7;
+                } else if (nearBorders[2] == 1 && nearBorders[3] == 1) {
+                    return 8;
+                } else {
+                    return -2;
+                }
+            }            
+        }
+        
+        /**
+         * Выходит ли координата центра мяча за границы квадрата
+         */
+        function isOut (x, y) {
+            if (x <= r || y <= r || x >= w-r || y >= h-r) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        
+        function changeDirection (x, y, alpha, victory, whichBorder) { // можем менять здесь только угол alpha
+            let x0 = x;
+            let y0 = y;
+            let alpha0 = alpha;
+            if (whichBorder == 0 || whichBorder < 0 || whichBorder > 8) {
+                return [x0, y0, alpha0];
+            }
+            
+            if (whichBorder >= 5) { // если попали в угол квадрата
+                return [x0, y0, alpha0+toRad(180)];
+            }
+            
+            let alpha2 = 0;
+            
+            alpha2 = -alpha0;
+            [x, y, alpha] = calcNext(x0, y0, alpha2, victory);
+            if (isOut(x, y)) {
+                alpha2 += toRad(180);
+            }
+            [x, y, alpha] = calcNext(x0, y0, alpha2, victory);
+            
+            if (x == x0 || y == y0 || isOut(x, y) || isOut(x0, y0)) { // значит угол был около 90, и нужно поворачивать на 180
+                alpha2 = alpha0+toRad(180);
+                [x, y, alph2] = calcNext(x0, y0, alpha2, victory);                
+                [x, y, alpha] = calcNext(x, y, alpha2, victory);
+            }
+            
+            return [x0, y0, alpha];
+        }
+        
+        function calcNext (x, y, alpha, victory) {
+            x += victory*Math.cos(alpha);
+            y += victory*Math.sin(alpha);
+            
+            x = Math.round(x);
+            y = Math.round(y);
+            return [x, y, alpha];
+        }
+        
+        function getVisualPos () {
+            let rb = $('#rb')[0];
+            let x = +(window.getComputedStyle(rb).paddingLeft.split('px')[0]) + r; // получаем координату x (из строки)
+            let y = +(window.getComputedStyle(rb).paddingTop.split('px')[0]) + r; // получаем координату y (из строки)
+            return [x, y];
+        }
+        
+        function setVisualPos (x, y) {
+            let rb = $('#rb')[0];
+            $(rb).css('padding-left', ''+(x-r)+'px');
+            $(rb).css('padding-top', ''+(y-r)+'px');
+        }
+        
+        async function move () { // асинхронная функция
+            let [x, y] = getVisualPos();
+            //console.log(x, y);
+            
+            let x0 = x;
+            let y0 = y;
+            [x, y, alpha] = calcNext(x, y, alpha, victory);
+            
+            let whichBorder = 0;
+            if ((whichBorder = checkBorder(x, y)) > 0) {
+                [x, y, alpha] = changeDirection(x0, y0, alpha, victory, whichBorder);
+                do {
+                    [x, y, alpha] = calcNext(x, y, alpha, victory);
+                    await sleep(1000/100);
+                    setVisualPos(x, y);
+                } while (checkBorder(x, y) == whichBorder); // из-за округлений значений возможно "застревание" у стены, поэтому лучше несколько шагов вместо одного, если дальше определяется та же стена
+            } else {
+                await sleep(1000/100); // await (синхронное ожидание вызова) применим только к Promise и async функциям
+            }            
+            setVisualPos(x, y);
+        }
+        
+        async function main () {
+            while (true) {
+                await move();
+            }
+        }
+        
+        main();
+    });
+ 
+ 
+ 
+//    $(window).on("load", function () {
+//        console.log("window loaded");
+//    });
+    </script>
+</body>
+</html>
