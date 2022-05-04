@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <!--<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>-->
-    <title>Exmpale3</title>
+    <title>Example3</title>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <style>
         :root {
@@ -23,7 +23,12 @@
 
         div#output {
             color: black;
-            background-color: lightblue;
+            background-color: lightgreen;
+            padding: 5px;
+            margin: 3px;
+            width: 70%;
+            min-height: 50px;
+            border: 1px solid #ababab;
         }
         
         
@@ -31,8 +36,8 @@
             width: 480px;
             height: 480px;
             border: 5px solid #000;
+            background-color: skyblue;
         }
-
 
         img {
             border-radius: 50%;
@@ -40,7 +45,7 @@
             height: calc(var(--ball-radius) * 2);
         }
         #rb {
-            padding-left: 240px;
+            padding-left: 50%;
             padding-top: 0px;
         }        
         .rotating {
@@ -58,20 +63,21 @@
     </style>
 </head>
 <body>
-    <div id="output"></div>
-    
     <div class="rect">
         <div id="rb">
             <img src="r.jpg" class="rotating" />
         </div>
     </div>
     
+    <div id="output"></div>
+    
     <script>
-        
+    'use strict';    
     $(document).ready(function () {        
         let alpha = toRad(72); // стартовый угол полёта мяча [0, 360), [0, 2*PI)
         let r = +(window.getComputedStyle($('img')[0]).width.split('px')[0]) / 2; //
-        console.log('r=', r);
+        console.log('r=' + r + ' px');
+        let sleepTimeout = 1000/100;
         let victory = 3; // примерный шаг движения мяча под углом ("скорость"), в пикселях
         let w = 480; ///
         let h = 480; ///
@@ -80,24 +86,15 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
         
+        /**
+         * Из градусов в радианы
+         */ 
         function toRad (deg) {
             return deg / 180 * Math.PI;
         }
         
-        function check1 (x, y) {
-            return ((x-0) <= r) ? 1 : 0;
-        }
-        
-        function check2 (x, y) {
-            return ((y-0) <= r) ? 1 : 0;
-        }
-        
-        function check3 (x, y) {
-            return ((w-x) <= r || x>w) ? 1 : 0;
-        }
-        
-        function check4 (x, y) {
-            return ((h-y) <= r || y>h) ? 1 : 0;
+        function fromRad (ra) {
+            return Math.round((ra * 180 / Math.PI) * 10) / 10;
         }
         
         /**
@@ -140,10 +137,38 @@
         }
         
         /**
+         * Коснулись или вышли за стену 1
+         */
+        function check1 (x, y) {
+            return ((x-0) <= r) ? 1 : 0;
+        }
+        
+        /**
+         * Коснулись или вышли за стену 2
+         */
+        function check2 (x, y) {
+            return ((y-0) <= r) ? 1 : 0;
+        }
+        
+        /**
+         * Коснулись или вышли за стену 3
+         */
+        function check3 (x, y) {
+            return (x>=(w-r)) ? 1 : 0;
+        }
+        
+        /**
+         * Коснулись или вышли за стену 4
+         */
+        function check4 (x, y) {
+            return (y>=(h-r)) ? 1 : 0;
+        }      
+        
+        /**
          * Выходит ли координата центра мяча за границы квадрата
          */
         function isOut (x, y) {
-            if (x <= r || y <= r || x >= w-r || y >= h-r) {
+            if (check1(x,y) == 1 || check2(x,y) == 1 || check3(x,y) == 1 || check4(x,y) == 1) {
                 return true;
             } else {
                 return false;
@@ -204,7 +229,15 @@
         
         async function move () { // асинхронная функция
             let [x, y] = getVisualPos();
-            //console.log(x, y);
+            
+            $('#output').html(''); // empty
+            var outputData = '';
+            outputData += '(x,y): ('+x+','+y+')' + '<br/>';
+            outputData += 'r=' + r + ' px' + '<br/>';
+            outputData += '∠α: '+fromRad(alpha) + '&#176' + '<br/>';
+            outputData += 'Шаг victory: '+victory + ' px' + '<br/>';
+            outputData += 'Sleep: '+sleepTimeout+' ms' + '<br/>';
+            $('#output').html(outputData);
             
             let x0 = x;
             let y0 = y;
@@ -213,13 +246,14 @@
             let whichBorder = 0;
             if ((whichBorder = checkBorder(x, y)) > 0) {
                 [x, y, alpha] = changeDirection(x0, y0, alpha, victory, whichBorder);
+                [x, y, alpha] = [x, y, alpha%(2*Math.PI)];
                 do {
                     [x, y, alpha] = calcNext(x, y, alpha, victory);
-                    await sleep(1000/100);
+                    await sleep(sleepTimeout);
                     setVisualPos(x, y);
                 } while (checkBorder(x, y) == whichBorder); // из-за округлений значений возможно "застревание" у стены, поэтому лучше несколько шагов вместо одного, если дальше определяется та же стена
             } else {
-                await sleep(1000/100); // await (синхронное ожидание вызова) применим только к Promise и async функциям
+                await sleep(sleepTimeout); // await (синхронное ожидание вызова) применим только к Promise и async функциям
             }            
             setVisualPos(x, y);
         }
