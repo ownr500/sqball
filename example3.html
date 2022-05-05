@@ -198,7 +198,7 @@
             
             if (x == x0 || y == y0 || isOut(x, y) || isOut(x0, y0)) { // значит угол был около 90, и нужно поворачивать на 180
                 alpha2 = alpha0+toRad(180);
-                [x, y, alph2] = calcNext(x0, y0, alpha2, victory);                
+                [x, y, alpha2] = calcNext(x0, y0, alpha2, victory);                
                 [x, y, alpha] = calcNext(x, y, alpha2, victory);
             }
             
