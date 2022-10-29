@@ -84,7 +84,7 @@
         }
 
 
-        img {
+        .rect div img.rotating {
             border-radius: 50%;
             width: calc(var(--ball-radius) * 2);
             height: calc(var(--ball-radius) * 2);
@@ -110,7 +110,7 @@
 <body style="postition: absolute;">
 <div class="rect" id="rect">
     <div id="rb">
-        <img src="r.jpg" class="rotating" />
+        <img src="data/r.jpg" class="rotating" />
     </div>
 </div>
 <div id="border-1-left" class="border-div border-1-left"></div>
@@ -132,11 +132,12 @@
         
         let sqOptions = {
             "borderColor": 'none',
-            "jobs": [ // Если значение не соотвествует, то ничего не отображается. Иначе отображается первый подошедший вариант.
-                {"maxYear": '2023', "onlyMonth": '10', "onlyHour": '19', "ttlMinutes": '15', "imgSrc": 'd.jpg', },
-                {"maxYear": '9999', "onlyWeekday": '3,5', "onlyHour": '20', "ttlMinutes": '5', "imgSrc": 'k.jpg', },
-                {"onlyWeekday": '4', "onlyDay": '12', "ttlMinutes": '25', "imgSrc": 'p.jpg', },
-                {"date": '2022-10-30', "onlyHour": '16', "ttlMinutes": '30', "imgSrc": 't.jpg', },
+            "jobs": [ // Если значение не соответствует, то ничего не отображается. Иначе отображается первый подошедший вариант.
+                {"maxYear": '2023', "onlyMonth": '10', "onlyHour": '19', "ttlMinutes": '15', "imgSrc": 'data/clippy.gif', },
+                {"maxYear": '9999', "onlyWeekday": '3,5', "onlyHour": '20', "ttlMinutes": '5', "imgSrc": 'data/robo.gif', },
+                {"onlyWeekday": '4', "onlyDay": '12', "ttlMinutes": '25', "imgSrc": 'data/gooddy.gif', },
+                {"onlyMonth": '03', "onlyDay": '08', "onlyHour": '18,19,20', "ttlMinutes": '15', "imgSrc": 'data/flowers2.jpg', },
+                {"date": '2022-10-30', "onlyHour": '16', "ttlMinutes": '30', "imgSrc": 'data/witchcraft.gif', },
             ],
             "jobsCommon": {"ip4OddMinute": true, "ip3OddHour": null}, // Если ip "w.x.y.z", то "y" ip3, "z" ip4, а совпадение четности ip4 с минутами регулирует ip4OddMinute.
         };
@@ -422,9 +423,23 @@
             createDiv(x0, y0);
         }
 
+        async function subMain () {
+            let k = 1000;
+            while (k > 0) {
+                await move();
+                --k;
+            }
+        }
+        
         async function main () {
             while (true) {
-                await move();
+                for (let state of sqOptions.jobs) {
+                    if (!state.imgSrc) {
+                        continue;
+                    }
+                    $('div#rb>img').attr('src', ''+state.imgSrc);
+                    await subMain();
+                }
             }
         }
 
