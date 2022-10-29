@@ -126,8 +126,11 @@
         function getComputedPx (bElement, str) {
             return window.getComputedStyle(bElement)[str].split('px')[0];
         }
+        function genRandomFloatNumber () {
+            return (Math.random() + 0.3); // near 0.3 .. 1.29999
+        }
         
-        let alpha = toRad(72); // стартовый угол полёта мяча [0, 360), [0, 2*PI)
+        let alpha = toRad(35); // стартовый угол полёта мяча [0, 360), [0, 2*PI)
         let r = +(getComputedPx($('img')[0], 'width')) / 2; //
         console.log('r=' + r + ' px');
         let sleepTimeout = 1000/100;
@@ -266,10 +269,11 @@
                 return [x0, y0, alpha0+toRad(180)];
             }
 
+            let smallRandomPhi = genRandomFloatNumber()*4;
             let alpha2 = 0;
             switch (whichBorder) {
                 case 1: case 3:
-                    alpha2 = - alpha0; /////+ 2*rectSizes.get('phi');
+                    alpha2 = - alpha0 + 2*toRad(smallRandomPhi); /////+ 2*rectSizes.get('phi');
                     //console.log('alpha0='+fromRad(alpha0));
                     //console.log('alpha2='+fromRad(alpha2));
                     break
