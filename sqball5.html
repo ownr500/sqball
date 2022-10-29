@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <!--<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>-->
-    <title>sandbox5</title>
+    <title>sqball 5</title>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <style>
         :root {
@@ -16,8 +16,8 @@
         }
 
         body {
-            width: 480px /*100%*/;
-            height: 480px /*100%*/;
+            width: 100%;
+            height: 100%;
         }
 
 
@@ -33,10 +33,12 @@
 
 
         .rect {
-            width: 50%;
-            height: 60%;
+            width: 70%;
+            min-height: 480px;
             border: 5px none #000;
             /*background-color: skyblue;*/
+            bottom: 5px;
+            position: relative;
         }
 
         .border-div {
@@ -130,8 +132,13 @@
         console.log('r=' + r + ' px');
         let sleepTimeout = 1000/100;
         let victory = 3; // примерный шаг движения мяча под углом ("скорость"), в пикселях
-        let w = 480; ///
-        let h = 480; ///
+        let w = +(getComputedPx($('#rect')[0], 'width'));
+        let h = +(getComputedPx($('#rect')[0], 'height'));
+        
+        $('.rect').css('width', ''+w+'px');
+        $('.rect').css('height', ''+h+'px');
+        
+        console.log(w, h);
         
         function sleep (ms) { // TODO: Move to deps/js/common.js
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -308,6 +315,31 @@
             let rb = $('#rb')[0];
             $(rb).css('padding-left', ''+(x-r)+'px');
             $(rb).css('padding-top', ''+(y-r)+'px');
+            
+            drawBorders();
+        }
+        
+        function drawBorders () {
+            $('.border-1-left').css({
+                "transform-origin": '0 top',
+                "transform": 'scale(5, calc('+h+'))',
+            });            
+            $('.border-2-top').css({
+                "transform-origin": 'left 50%',
+                "transform": 'scale(calc('+w+'), 5)',
+            });
+            $('.border-3-right').css({
+                "transform-origin": '100% top',
+                "transform": 'scale(5, calc('+h+'))',
+                "left": ''+w+'px',
+                "top": '0px',
+            });
+            $('.border-4-bottom').css({
+                "transform-origin": 'left 50%',
+                "transform": 'scale(calc('+w+'), 5)',
+                "left": '0px',
+                "top": ''+h+'px',
+            });
         }
 
         let traceDivs = [];
