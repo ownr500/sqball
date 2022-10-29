@@ -122,13 +122,16 @@
 
 <script>
     'use strict';
-    $(document).ready(function () {       
+    $(document).ready(function () {
         function getComputedPx (bElement, str) {
             return window.getComputedStyle(bElement)[str].split('px')[0];
         }
         function genRandomFloatNumber () {
             return (Math.random() + 0.3); // near 0.3 .. 1.29999
         }
+        
+        $('body').css('position', 'absolute');
+        $('#rect').appendTo('body');
         
         let sqOptions = {
             "borderColor": 'none',
