@@ -357,7 +357,7 @@
                 "top": ''+h+'px',
             });
             
-            if (!sqOptions.borderColor || sqOptions.borderColor == 'none') {
+            if ((!sqOptions.borderColor && sqOptions.borderColor !== undefined) || sqOptions.borderColor == 'none') {
                 $('.border-div').css('display', 'none');
             } else {
                 $('.border-div').css('border', '0px none '+sqOptions.borderColor);
