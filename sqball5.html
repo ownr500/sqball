@@ -120,9 +120,13 @@
 
 <script>
     'use strict';
-    $(document).ready(function () {
+    $(document).ready(function () {       
+        function getComputedPx (bElement, str) {
+            return window.getComputedStyle(bElement)[str].split('px')[0];
+        }
+        
         let alpha = toRad(72); // стартовый угол полёта мяча [0, 360), [0, 2*PI)
-        let r = +(window.getComputedStyle($('img')[0]).width.split('px')[0]) / 2; //
+        let r = +(getComputedPx($('img')[0], 'width')) / 2; //
         console.log('r=' + r + ' px');
         let sleepTimeout = 1000/100;
         let victory = 3; // примерный шаг движения мяча под углом ("скорость"), в пикселях
@@ -295,8 +299,8 @@
 
         function getVisualPos () {
             let rb = $('#rb')[0];
-            let x = +(window.getComputedStyle(rb).paddingLeft.split('px')[0]) + r; // получаем координату x (из строки)
-            let y = +(window.getComputedStyle(rb).paddingTop.split('px')[0]) + r; // получаем координату y (из строки)
+            let x = +(getComputedPx(rb, 'paddingLeft')) + r; // получаем координату x (из строки)
+            let y = +(getComputedPx(rb, 'paddingTop')) + r; // получаем координату y (из строки)
             return [x, y];
         }
 
@@ -369,18 +373,6 @@
             }
         }
 
-        function getComputedPx (bElement, str) {
-            return window.getComputedStyle(bElement)[str].split('px')[0];
-        }
-
-        function getComputedPleft (bElement) {
-            return window.getComputedStyle(bElement).left.split('px')[0];
-        }
-
-        function getComputedPtop (bElement) {
-            return window.getComputedStyle(bElement).top.split('px')[0];
-        }
-
         function changeBorder(ort, direction){
             let b = $('#rect')[0];
             let xy = getComputedPx(b, ort);
@@ -393,7 +385,7 @@
         function shiftBottom(direction)
         {
             let b = $('#border-4-bottom')[0];
-            let bLeft = getComputedPleft(b);
+            let bLeft = getComputedPx(b, 'left');
             let newbLeft = Number(bLeft) + direction * 10;
             $(b).css('left', ''+ newbLeft +'px');
 
