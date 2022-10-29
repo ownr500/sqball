@@ -16,8 +16,8 @@
         }
 
         body {
-            width: 100%;
-            height: 100%;
+            width: 480px /*100%*/;
+            height: 480px /*100%*/;
         }
 
 
@@ -33,8 +33,8 @@
 
 
         .rect {
-            width: 480px;
-            height: 480px;
+            width: 50%;
+            height: 60%;
             border: 5px none #000;
             /*background-color: skyblue;*/
         }
@@ -116,7 +116,7 @@
 <div id="border-3-right" class="border-div border-3-right"></div>
 <div id="border-4-bottom" class="border-div border-4-bottom"></div>
 
-<div id="output"></div>
+<!--<div id="output"></div>-->
 
 <script>
     'use strict';
@@ -130,14 +130,9 @@
         console.log('r=' + r + ' px');
         let sleepTimeout = 1000/100;
         let victory = 3; // примерный шаг движения мяча под углом ("скорость"), в пикселях
-        let rectSizes = new Map;
-        rectSizes.set('width', 480);
-        rectSizes.set('height', 480);
-        rectSizes.set('phi', 0); //rad
-        rectSizes.set('x5', 0);
-        rectSizes.set('y5', 480);
-        rectSizes.set('l1', 480);
-
+        let w = 480; ///
+        let h = 480; ///
+        
         function sleep (ms) { // TODO: Move to deps/js/common.js
             return new Promise(resolve => setTimeout(resolve, ms));
         }
@@ -154,6 +149,18 @@
         }
 
         /**
+         * rectSizes:
+         * width - длинна верхней стены
+         * height - высота параллелограмма
+         * phi - угол скоса
+         * x5 - координата угла 5
+         * y5 - координата угла 5
+         * l1 - длинна стены 1
+         *
+         */
+
+
+        /**
          * Возвращает 0 или код стены, которой достиг мяч:
          *  1 - левая стена,
          *  2 - верхняя стена,
@@ -167,16 +174,6 @@
          *  -2 - ошибочное состояние
          */
 
-        /**
-         * rectSizes:
-         * width - длинна верхней стены
-         * height - высота параллелограмма
-         * phi - угол скоса
-         * x5 - координата угла 5
-         * y5 - координата угла 5
-         * l1 - длинна стены 1
-         *
-         */
         function checkBorder (x, y) {
             let nearBorders = [check1(x, y), check2(x, y), check3(x, y), check4(x, y)];
             let sum = nearBorders[0] + nearBorders[1] + nearBorders[2] + nearBorders[3];
@@ -208,15 +205,16 @@
          * h = y1 = cos(phi)*x + sin(phi)*y  расстояние от мяча до прямой
          */
         function check1 (x, y) {
-            let h = Math.cos(rectSizes.get('phi')) * x + Math.sin(rectSizes.get('phi')) * y;
-            return ((h-0) <= r) ? 1 : 0;
+            let z = x; //Math.cos(rectSizes.get('phi')) * x + Math.sin(rectSizes.get('phi')) * y;
+            return ((z-0) <= r) ? 1 : 0;
         }
 
         /**
          * Коснулись или вышли за стену 2
          */
         function check2 (x, y) {
-            return ((y-0) <= r) ? 1 : 0;
+            let z = y;
+            return ((z-0) <= r) ? 1 : 0;
         }
 
         /**
@@ -225,15 +223,17 @@
          */
         function check3 (x, y) {
             //return (x>=(rectSizes.get('width')-r)) ? 1 : 0;
-            let h = rectSizes.get('width')*Math.cos(rectSizes.get('phi')) - (Math.cos(rectSizes.get('phi')) * x + Math.sin(rectSizes.get('phi')) * y);
-            return ((h-0) <= r) ? 1 : 0;
+            let z = x; //rectSizes.get('width')*Math.cos(rectSizes.get('phi')) - (Math.cos(rectSizes.get('phi')) * x + Math.sin(rectSizes.get('phi')) * y);
+            return ((w-z) <= r) ? 1 : 0;
         }
 
         /**
          * Коснулись или вышли за стену 4
          */
         function check4 (x, y) {
-            return (y>=(rectSizes.get('height')-r)) ? 1 : 0;
+            ///return (y>=(rectSizes.get('height')-r)) ? 1 : 0;
+            let z = y;
+            return ((h-z) <= r) ? 1 : 0;
         }
 
         /**
@@ -262,7 +262,7 @@
             let alpha2 = 0;
             switch (whichBorder) {
                 case 1: case 3:
-                    alpha2 = - alpha0 + 2*rectSizes.get('phi');
+                    alpha2 = - alpha0; /////+ 2*rectSizes.get('phi');
                     //console.log('alpha0='+fromRad(alpha0));
                     //console.log('alpha2='+fromRad(alpha2));
                     break
@@ -373,14 +373,14 @@
             }
         }
 
-        function changeBorder(ort, direction){
-            let b = $('#rect')[0];
-            let xy = getComputedPx(b, ort);
-            let newXY = Number(xy) + direction * 10;
-            $(b).css(ort, newXY + 'px');
-            rectSizes.set(ort, newXY);
-            console.log('changeBorder');
-        }
+//        function changeBorder(ort, direction){
+//            let b = $('#rect')[0];
+//            let xy = getComputedPx(b, ort);
+//            let newXY = Number(xy) + direction * 10;
+//            $(b).css(ort, newXY + 'px');
+//            rectSizes.set(ort, newXY);
+//            console.log('changeBorder');
+//        }
 
         function shiftBottom(direction)
         {
@@ -389,7 +389,7 @@
             let newbLeft = Number(bLeft) + direction * 10;
             $(b).css('left', ''+ newbLeft +'px');
 
-            let lHeight = rectSizes.get("height");
+            let lHeight = +(getComputedPx($('.border-4-bottom')[0], 'top')); ///rectSizes.get("height");
             let phi = -Math.atan(newbLeft / lHeight);
             let lLength = Math.round(Math.sqrt(newbLeft**2 + lHeight**2));
             let l = $('#border-1-left')[0];
@@ -400,17 +400,14 @@
             r.style.transform = "rotate(" + phi + "rad) scale(5, " + lLength + ")";
 
 
-            //rectSizes.set('width', 480);
-            //rectSizes.set('height', 480);
-            rectSizes.set('phi', phi);
-            //rectSizes.set('x5', 0);
-            rectSizes.set('y5', lHeight);
-            rectSizes.set('l1', lLength);
+//            rectSizes.set('phi', phi);
+//            rectSizes.set('y5', lHeight);
+//            rectSizes.set('l1', lLength);
 
         }
 
-        window.addEventListener("keydown", function(event){
-            if(event.shiftKey) {
+        /*window.addEventListener("keydown", function (event) {
+            if (event.shiftKey) {
                 switch (event.code) {
                     case "ArrowRight":
                         shiftBottom(1);
@@ -421,7 +418,7 @@
                     default:
                         break
                 }
-            }else {
+            } else {
                 switch (event.code) {
                     case "ArrowDown":
                         changeBorder('height', 1);
@@ -439,23 +436,23 @@
                         break
                 }
             }
-        })
+        });*/
 
-        window.addEventListener("click", function(event){
-            let x = event.clientX;
-            let y = event.clientY;
-            let hLeft = Math.cos(rectSizes.get('phi')) * x + Math.sin(rectSizes.get('phi')) * y;
-            console.log('hLeft=' + hLeft);
-
-            let dif=rectSizes.get('width')*Math.cos(rectSizes.get('phi'));
-            let hRight = rectSizes.get('width')*Math.cos(rectSizes.get('phi')) - (Math.cos(rectSizes.get('phi')) * x + Math.sin(rectSizes.get('phi')) * y);
-            console.log('phi=' + fromRad(rectSizes.get('phi')));
-            console.log('cos=' + Math.cos(rectSizes.get('phi')));
-            console.log('width=' + rectSizes.get('width'));
-
-            console.log('dif=' +dif);
-            console.log('hRight=' + hRight);
-        })
+//        window.addEventListener("click", function(event){
+//            let x = event.clientX;
+//            let y = event.clientY;
+//            let hLeft = Math.cos(rectSizes.get('phi')) * x + Math.sin(rectSizes.get('phi')) * y;
+//            console.log('hLeft=' + hLeft);
+//
+//            let dif=rectSizes.get('width')*Math.cos(rectSizes.get('phi'));
+//            let hRight = rectSizes.get('width')*Math.cos(rectSizes.get('phi')) - (Math.cos(rectSizes.get('phi')) * x + Math.sin(rectSizes.get('phi')) * y);
+//            console.log('phi=' + fromRad(rectSizes.get('phi')));
+//            console.log('cos=' + Math.cos(rectSizes.get('phi')));
+//            console.log('width=' + rectSizes.get('width'));
+//
+//            console.log('dif=' +dif);
+//            console.log('hRight=' + hRight);
+//        })
 
 
         main();
