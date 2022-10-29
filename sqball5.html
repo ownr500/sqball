@@ -151,6 +151,7 @@
         
         $('.rect').css('width', ''+w+'px');
         $('.rect').css('height', ''+h+'px');
+        drawBorders();
         
         console.log(w, h);
         
@@ -355,6 +356,13 @@
                 "left": '0px',
                 "top": ''+h+'px',
             });
+            
+            if (!sqOptions.borderColor || sqOptions.borderColor == 'none') {
+                $('.border-div').css('display', 'none');
+            } else {
+                $('.border-div').css('border', '0px none '+sqOptions.borderColor);
+                $('.border-div').css('background-color', ''+sqOptions.borderColor);
+            }
         }
 
         let traceDivs = [];
