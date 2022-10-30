@@ -38,6 +38,7 @@
             border: 5px none #000;
             /*background-color: skyblue;*/
             bottom: 5px;
+            display: block;
             position: relative;
         }
 
@@ -145,6 +146,7 @@
             "jobsCommon": {"ip4OddMinute": true, "ip3OddHour": null}, // Если ip "w.x.y.z", то "y" ip3, "z" ip4, а совпадение четности ip4 с минутами регулирует ip4OddMinute.
         };
         
+        let working = true;
         let alpha = toRad(35); // стартовый угол полёта мяча [0, 360), [0, 2*PI)
         let r = +(getComputedPx($('img')[0], 'width')) / 2; //
         console.log('r=' + r + ' px');
@@ -428,14 +430,14 @@
 
         async function subMain () {
             let k = 1000;
-            while (k > 0) {
+            while (k > 0 && working) {
                 await move();
                 --k;
             }
         }
         
         async function main () {
-            while (true) {
+            while (working) {
                 for (let state of sqOptions.jobs) {
                     if (!state.imgSrc) {
                         continue;
@@ -443,6 +445,26 @@
                     $('div#rb>img').attr('src', ''+state.imgSrc);
                     await subMain();
                 }
+            }
+            stop();
+        }
+        
+        function stop () {
+            let needWait = (working != false);
+            working = false;
+            $('#rect').css('display', 'none');
+            return needWait;
+        }
+        
+        function start () {
+            if (!working || stop()) {
+                working = true;
+                $('#rect').css('display', 'block');
+                main();
+            } else {
+                setTimeout(function () {
+                    start(); // FIXME old is ignored
+                }, 1000);
             }
         }
 
@@ -528,7 +550,25 @@
 //        })
 
 
-        main();
+        start();
+        
+        
+        setTimeout(function () {
+            stop();
+        }, 5000);
+        
+        setTimeout(function () {
+            start();
+        }, 7000);
+        
+        setTimeout(function () {
+            stop();
+        }, 11000);
+        
+        setTimeout(function () {
+            start();
+        }, 14000);
+    
     });
 </script>
 </body>
