@@ -138,11 +138,11 @@
             "borderColor": 'none',
             "traceColor": 'none',
             "jobs": [ // Если значение не соответствует, то ничего не отображается. Иначе отображается первый подошедший вариант.
-                {"maxYear": '2023', "onlyMonth": '10', "onlyHour": '19', "ttlMinutes": '15', "imgSrc": 'data/clippy.gif', },
+                {"maxYear": '2025', "minYear": '2023', "onlyMonth": '10', "onlyHour": '19', "ttlMinutes": '15', "imgSrc": 'data/clippy.gif', },
                 {"maxYear": '9999', "onlyWeekday": '3,5', "onlyHour": '20', "ttlMinutes": '5', "imgSrc": 'data/robo.gif', },
                 {"onlyWeekday": '4', "onlyDay": '12', "ttlMinutes": '25', "imgSrc": 'data/gooddy.gif', },
                 {"onlyMonth": '03', "onlyDay": '08', "onlyHour": '18,19,20', "ttlMinutes": '15', "imgSrc": 'data/flowers2.jpg', },
-                {"date": '2022-10-30', "onlyHour": '16', "ttlMinutes": '30', "imgSrc": 'data/witchcraft.gif', },
+                {"date": '2022-10-31', "onlyHour": '19,21', "ttlMinutes": '30', "imgSrc": 'data/witchcraft.gif', },
             ],
             "jobsCommon": {"ip4OddMinute": true, "ip3OddHour": null}, // Если ip "w.x.y.z", то "y" ip3, "z" ip4, а совпадение четности ip4 с минутами регулирует ip4OddMinute.
         };
@@ -445,7 +445,7 @@
         }
         
         async function main () {
-            while (working) {
+            if (working) {
                 for (let state of sqOptions.jobs) {
                     let s = $.extend({}, sqOptions.jobsCommon, state);
                     if (!s.imgSrc) {
@@ -457,6 +457,7 @@
                     }
                     $('div#rb>img').attr('src', ''+s.imgSrc);
                     await subMain(ttlMinutes);
+                    break; ///
                 }
             }
             stop();
@@ -481,113 +482,86 @@
             }
         }
         
-        function checkCondition (state) {
-            console.log('state: ', state);
-            return 0.1; // 6 sec now. TODO
-        }
-
-//        function changeBorder(ort, direction){
-//            let b = $('#rect')[0];
-//            let xy = getComputedPx(b, ort);
-//            let newXY = Number(xy) + direction * 10;
-//            $(b).css(ort, newXY + 'px');
-//            rectSizes.set(ort, newXY);
-//            console.log('changeBorder');
-//        }
-
-        function shiftBottom(direction)
-        {
-            let b = $('#border-4-bottom')[0];
-            let bLeft = getComputedPx(b, 'left');
-            let newbLeft = Number(bLeft) + direction * 10;
-            $(b).css('left', ''+ newbLeft +'px');
-
-            let lHeight = +(getComputedPx($('.border-4-bottom')[0], 'top')); ///rectSizes.get("height");
-            let phi = -Math.atan(newbLeft / lHeight);
-            let lLength = Math.round(Math.sqrt(newbLeft**2 + lHeight**2));
-            let l = $('#border-1-left')[0];
-            //console.log("rotate(" + phi + "rad) scale(5, " + lLength + ")");
-            l.style.transform = "rotate(" + phi + "rad) scale(5, " + lLength + ")";
-
-            let r = $('#border-3-right')[0];
-            r.style.transform = "rotate(" + phi + "rad) scale(5, " + lLength + ")";
-
-
-//            rectSizes.set('phi', phi);
-//            rectSizes.set('y5', lHeight);
-//            rectSizes.set('l1', lLength);
-
-        }
-
-        /*window.addEventListener("keydown", function (event) {
-            if (event.shiftKey) {
-                switch (event.code) {
-                    case "ArrowRight":
-                        shiftBottom(1);
-                        break
-                    case "ArrowLeft":
-                        shiftBottom(-1);
-                        break
-                    default:
-                        break
+        function returnAfterLimits (ttlMinutes, whatStr, stateMustBe, stateNow) {
+            let whatStrS = (''+(whatStr[0])).toUpperCase()+whatStr.substring(1);
+            
+            for (let whatPref of ['min', 'max', 'only']) {
+                if (!stateMustBe[whatPref+whatStrS]) {
+                    continue;
                 }
-            } else {
-                switch (event.code) {
-                    case "ArrowDown":
-                        changeBorder('height', 1);
-                        break
-                    case "ArrowUp":
-                        changeBorder('height', -1);
-                        break
-                    case "ArrowRight":
-                        changeBorder('width', 1);
-                        break
-                    case "ArrowLeft":
-                        changeBorder('width', -1);
-                        break
-                    default:
-                        break
+                if (stateMustBe[whatPref+whatStrS].indexOf(',') >= 0) {
+                    let arr = stateMustBe[whatPref+whatStrS].split(',');
+                    let stateMustBe2 = {};
+                    let ttlMinutes2 = 0;
+                    for (let s of arr) {
+                        stateMustBe2[whatPref+whatStrS] = s;
+                        ttlMinutes2 = returnAfterLimits(ttlMinutes, whatStr, stateMustBe2, stateNow);
+                        if (ttlMinutes2 > 0) {
+                            break;
+                        }
+                    }
+                    ttlMinutes = ttlMinutes2;
+                    delete stateMustBe[whatPref+whatStrS];
                 }
             }
-        });*/
-
-//        window.addEventListener("click", function(event){
-//            let x = event.clientX;
-//            let y = event.clientY;
-//            let hLeft = Math.cos(rectSizes.get('phi')) * x + Math.sin(rectSizes.get('phi')) * y;
-//            console.log('hLeft=' + hLeft);
-//
-//            let dif=rectSizes.get('width')*Math.cos(rectSizes.get('phi'));
-//            let hRight = rectSizes.get('width')*Math.cos(rectSizes.get('phi')) - (Math.cos(rectSizes.get('phi')) * x + Math.sin(rectSizes.get('phi')) * y);
-//            console.log('phi=' + fromRad(rectSizes.get('phi')));
-//            console.log('cos=' + Math.cos(rectSizes.get('phi')));
-//            console.log('width=' + rectSizes.get('width'));
-//
-//            console.log('dif=' +dif);
-//            console.log('hRight=' + hRight);
-//        })
-
+            
+            
+            
+            if (!!stateMustBe['min'+whatStrS] && +stateNow[whatStr] < +stateMustBe['min'+whatStrS]) {
+                ttlMinutes = 0;
+            }
+            if (!!stateMustBe['max'+whatStrS] && +stateNow[whatStr] > +stateMustBe['max'+whatStrS]) {
+                ttlMinutes = 0;
+            }
+            if (!!stateMustBe['only'+whatStrS] && +stateNow[whatStr] != +stateMustBe['only'+whatStrS]) {
+                ttlMinutes = 0;
+            }
+            
+            return ttlMinutes;
+        }
+        
+        function checkCondition (state) {
+            try {
+                //console.log('state: ', state);
+                if (!state.imgSrc) {
+                    return 0;
+                }
+                let date = new Date();
+                let dateSimpleStr = new Date(date-(date.getTimezoneOffset() * 60 * 1000)).toISOString().split('T')[0];
+                let stateNow = {
+                    "year": +date.getFullYear(), // YYYY
+                    "month": +date.getMonth(),
+                    "yearweek": +Math.ceil((Math.floor((date - new Date(+date.getFullYear(), 0, 1)) / (24 * 60 * 60 * 1000))) / 7),
+                    "day": +date.getDate(),
+                    "weekday": +date.getDay(),
+                    "hour": +date.getHours(), // HH24
+                    "minute": +date.getMinutes(),
+                    //"second": +date.getSeconds(),
+                };
+                
+                let ttlMinutes = state.ttlMinutes;
+                if (!ttlMinutes || ttlMinutes <= 0) {
+                    ttlMinutes = 0;
+                }
+                
+                for (let r of Object.keys(stateNow)) {
+                    ttlMinutes = returnAfterLimits(ttlMinutes, /*"year"*/r, state, stateNow);
+                }
+                if (!!state['date'] && dateSimpleStr != state['date']) {
+                    ttlMinutes = 0;
+                }
+                
+                // TODO: jobsCommon IPs
+                
+                
+                return ttlMinutes;
+            } catch (e) {
+                console.error(e);
+                return 0.1; // 6 sec now. TODO
+            }
+        }
 
         start();
-        
-        
-/*        setTimeout(function () {
-            stop();
-        }, 5000);
-        
-        setTimeout(function () {
-            start();
-        }, 7000);
-        
-        setTimeout(function () {
-            stop();
-        }, 11000);
-        
-        setTimeout(function () {
-            start();
-        }, 14000);
-*/
-    
     });
 </script>
 </body>
