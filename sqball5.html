@@ -433,8 +433,11 @@
             createDivTrace(x0, y0);
         }
 
-        async function subMain () {
+        async function subMain (ttlMinutes) {
             let k = 1000;
+            if (ttlMinutes && ttlMinutes > 0) {
+                k = ttlMinutes*60*1000/sleepTimeout;
+            }
             while (k > 0 && working) {
                 await move();
                 --k;
@@ -444,11 +447,16 @@
         async function main () {
             while (working) {
                 for (let state of sqOptions.jobs) {
-                    if (!state.imgSrc) {
+                    let s = $.extend({}, sqOptions.jobsCommon, state);
+                    if (!s.imgSrc) {
                         continue;
                     }
-                    $('div#rb>img').attr('src', ''+state.imgSrc);
-                    await subMain();
+                    let ttlMinutes = checkCondition(s);
+                    if (!ttlMinutes || ttlMinutes <= 0) {
+                        continue;
+                    }
+                    $('div#rb>img').attr('src', ''+s.imgSrc);
+                    await subMain(ttlMinutes);
                 }
             }
             stop();
@@ -471,6 +479,11 @@
                     start(); // FIXME old is ignored
                 }, 1000);
             }
+        }
+        
+        function checkCondition (state) {
+            console.log('state: ', state);
+            return 0.1; // 6 sec now. TODO
         }
 
 //        function changeBorder(ort, direction){
@@ -558,7 +571,7 @@
         start();
         
         
-        setTimeout(function () {
+/*        setTimeout(function () {
             stop();
         }, 5000);
         
@@ -573,6 +586,7 @@
         setTimeout(function () {
             start();
         }, 14000);
+*/
     
     });
 </script>
