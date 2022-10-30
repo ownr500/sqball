@@ -50,6 +50,7 @@
             height: 1px;
             border: 0px none #000;
             background-color: #000;
+            display: none;
 
 
         }
@@ -132,6 +133,7 @@
         }
         
         $('body').css('position', 'absolute');
+        $('#rect').css('position', 'absolute');
         $('#rect').appendTo('body');
         
         let sqOptions = {
@@ -142,7 +144,7 @@
                 {"maxYear": '9999', "onlyWeekday": '3,5', "onlyHour": '20', "ttlMinutes": '5', "imgSrc": 'data/robo.gif', },
                 {"onlyWeekday": '4', "onlyDay": '12', "ttlMinutes": '25', "imgSrc": 'data/gooddy.gif', },
                 {"onlyMonth": '03', "onlyDay": '08', "onlyHour": '18,19,20', "ttlMinutes": '15', "imgSrc": 'data/flowers2.jpg', },
-                {"date": '2022-10-31', "onlyHour": '19,21', "ttlMinutes": '30', "imgSrc": 'data/witchcraft.gif', },
+                {"date": '2022-10-31', "onlyHour": '03,19,21', "ttlMinutes": '30', "imgSrc": 'data/witchcraft.gif', },
             ],
             "jobsCommon": {"ip4OddMinute": true, "ip3OddHour": null}, // Если ip "w.x.y.z", то "y" ip3, "z" ip4, а совпадение четности ip4 с минутами регулирует ip4OddMinute.
         };
@@ -367,6 +369,7 @@
             if ((!sqOptions.borderColor && sqOptions.borderColor !== undefined) || sqOptions.borderColor == 'none') {
                 $('.border-div').css('display', 'none');
             } else {
+                $('.border-div').css('display', 'block');
                 $('.border-div').css('border', '0px none '+sqOptions.borderColor);
                 $('.border-div').css('background-color', ''+sqOptions.borderColor);
             }
