@@ -136,6 +136,7 @@
         
         let sqOptions = {
             "borderColor": 'none',
+            "traceColor": 'none',
             "jobs": [ // Если значение не соответствует, то ничего не отображается. Иначе отображается первый подошедший вариант.
                 {"maxYear": '2023', "onlyMonth": '10', "onlyHour": '19', "ttlMinutes": '15', "imgSrc": 'data/clippy.gif', },
                 {"maxYear": '9999', "onlyWeekday": '3,5', "onlyHour": '20', "ttlMinutes": '5', "imgSrc": 'data/robo.gif', },
@@ -372,23 +373,27 @@
         }
 
         let traceDivs = [];
-        async function createDiv(x0, y0){
-            var div = document.createElement("div");
-            div.classList.add('trace');
-            div.style.position = "absolute";
-            div.style.width = "1px";
-            div.style.height = "1px";
-            div.style.backgroundColor = "red";
-            div.style.left = x0+"px";
-            div.style.top = y0+"px";
-            div.style.transform = "scale(1, 1)";
-            
-            traceDivs.push(div); // добавляем в конец списка traceDivs (а unshift бы добавил в начало списка)
-            
-            document.body.appendChild(div);
-            
-            while (traceDivs.length > 200) {
-                document.body.removeChild(traceDivs.shift()); // 1) убираем из начала списка traceDivs один элемент  2) и убираем его из document.body
+        async function createDivTrace (x0, y0) {
+            if ((!sqOptions.traceColor && sqOptions.traceColor !== undefined) || sqOptions.traceColor == 'none') {
+                $('.trace').css('display', 'none');
+            } else {
+                var div = document.createElement("div");
+                div.classList.add('trace');
+                div.style.position = "absolute";
+                div.style.width = "1px";
+                div.style.height = "1px";
+                div.style.backgroundColor = ""+sqOptions.traceColor;
+                div.style.left = x0+"px";
+                div.style.top = y0+"px";
+                div.style.transform = "scale(1, 1)";
+                
+                traceDivs.push(div); // добавляем в конец списка traceDivs (а unshift бы добавил в начало списка)
+                
+                document.body.appendChild(div);
+                
+                while (traceDivs.length > 200) {
+                    document.body.removeChild(traceDivs.shift()); // 1) убираем из начала списка traceDivs один элемент  2) и убираем его из document.body
+                }
             }
         }
 
@@ -425,7 +430,7 @@
             }
             setVisualPos(x, y);
 
-            createDiv(x0, y0);
+            createDivTrace(x0, y0);
         }
 
         async function subMain () {
