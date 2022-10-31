@@ -144,7 +144,7 @@
                 {"maxYear": '9999', "onlyWeekday": '3,5', "onlyHour": '20', "ttlMinutes": '5', "imgSrc": 'data/robo.gif', },
                 {"onlyWeekday": '4', "onlyDay": '12', "ttlMinutes": '25', "imgSrc": 'data/gooddy.gif', },
                 {"onlyMonth": '03', "onlyDay": '08', "onlyHour": '18,19,20', "ttlMinutes": '15', "imgSrc": 'data/flowers2.jpg', },
-                {"date": '2022-10-31', "onlyHour": '03,19,21', "ttlMinutes": '30', "imgSrc": 'data/witchcraft.gif', },
+                {"date": '2022-10-31', "onlyHour": '03,19,21,12,13', "ttlMinutes": '30', "imgSrc": 'data/witchcraft.gif', },
             ],
             "jobsCommon": {"ip4OddMinute": true, "ip3OddHour": null}, // Если ip "w.x.y.z", то "y" ip3, "z" ip4, а совпадение четности ip4 с минутами регулирует ip4OddMinute.
         };
@@ -455,6 +455,8 @@
                         continue;
                     }
                     let ttlMinutes = checkCondition(s);
+                    s.ttlMinutes = ttlMinutes;
+                    ttlMinutes = await checkIP(s);
                     if (!ttlMinutes || ttlMinutes <= 0) {
                         continue;
                     }
@@ -523,6 +525,19 @@
             return ttlMinutes;
         }
         
+        function getStateNow (date) {
+            return {
+                "year": +date.getFullYear(), // YYYY
+                "month": +date.getMonth(),
+                "yearweek": +Math.ceil((Math.floor((date - new Date(+date.getFullYear(), 0, 1)) / (24 * 60 * 60 * 1000))) / 7),
+                "day": +date.getDate(),
+                "weekday": +date.getDay(),
+                "hour": +date.getHours(), // HH24
+                "minute": +date.getMinutes(),
+                //"second": +date.getSeconds(),
+            };
+        }
+        
         function checkCondition (state) {
             try {
                 //console.log('state: ', state);
@@ -531,16 +546,7 @@
                 }
                 let date = new Date();
                 let dateSimpleStr = new Date(date-(date.getTimezoneOffset() * 60 * 1000)).toISOString().split('T')[0];
-                let stateNow = {
-                    "year": +date.getFullYear(), // YYYY
-                    "month": +date.getMonth(),
-                    "yearweek": +Math.ceil((Math.floor((date - new Date(+date.getFullYear(), 0, 1)) / (24 * 60 * 60 * 1000))) / 7),
-                    "day": +date.getDate(),
-                    "weekday": +date.getDay(),
-                    "hour": +date.getHours(), // HH24
-                    "minute": +date.getMinutes(),
-                    //"second": +date.getSeconds(),
-                };
+                let stateNow = getStateNow(date);
                 
                 let ttlMinutes = state.ttlMinutes;
                 if (!ttlMinutes || ttlMinutes <= 0) {
@@ -562,6 +568,47 @@
                 console.error(e);
                 return 0.1; // 6 sec now. TODO
             }
+        }
+        
+        let response = null;
+        async function checkIP (state) {
+            let ttlMinutes = state.ttlMinutes;
+            try {
+                if (!response || !response.ip || !response.ip.length || (response.ip.indexOf('.') < 0 && response.ip.indexOf(':') < 0)) {
+                    response = await $.ajax({
+                        url: "https://api.ipify.org/?format=json",
+                        data: {},
+                        dataType: "json",
+                    });
+                }
+                if (response && response.ip) {
+                    let ip = response.ip;
+                    //console.log(ip);
+                    let ipObj = ip.split('.'); // IPv4
+                    if (ipObj.length == 1) {
+                        ipObj = ip.split(':'); // maybe TODO IPv6
+                    }
+                    let stateNow = getStateNow(new Date());
+                    
+                    for (let whatStr of Object.keys(stateNow)) {
+                        let whatStrS = (''+(whatStr[0])).toUpperCase()+whatStr.substring(1);
+                        for (let i=0; i<4; ++i) {
+                            if (state['ip'+(i+1)+'Odd'+whatStrS] === true) {
+                                if (stateNow[whatStr] % 2 != ipObj[i] % 2) {
+                                    ttlMinutes = 0;
+                                }
+                            } else if (state['ip'+(i+1)+'Odd'+whatStrS] === false) {
+                                if (stateNow[whatStr] % 2 == ipObj[i] % 2) {
+                                    ttlMinutes = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                response = false;
+            }
+            return ttlMinutes;
         }
 
         start();
