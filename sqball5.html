@@ -145,6 +145,7 @@
                 {"onlyWeekday": '4', "onlyDay": '12', "ttlMinutes": '25', "imgSrc": 'data/gooddy.gif', },
                 {"onlyMonth": '03', "onlyDay": '08', "onlyHour": '18,19,20', "ttlMinutes": '15', "imgSrc": 'data/flowers2.jpg', },
                 {"date": '2022-10-31', "onlyHour": '03,19,21,12,13', "ttlMinutes": '30', "imgSrc": 'data/witchcraft.gif', },
+                {"onlyMonth": '12', "onlyDay": '31', "onlyHour": '14,19,21,22,23', "ttlMinutes": '15', "imgSrc": 'data/bengalskiy.gif', },
             ],
             "jobsCommon": {"ip4OddMinute": true, "ip3OddHour": null}, // Если ip "w.x.y.z", то "y" ip3, "z" ip4, а совпадение четности ip4 с минутами регулирует ip4OddMinute.
         };
@@ -528,12 +529,12 @@
         function getStateNow (date) {
             return {
                 "year": +date.getFullYear(), // YYYY
-                "month": +date.getMonth(),
+                "month": (+date.getMonth() + 1), // 1 .. 12
                 "yearweek": +Math.ceil((Math.floor((date - new Date(+date.getFullYear(), 0, 1)) / (24 * 60 * 60 * 1000))) / 7),
-                "day": +date.getDate(),
-                "weekday": +date.getDay(),
-                "hour": +date.getHours(), // HH24
-                "minute": +date.getMinutes(),
+                "day": (+date.getDate() % 32), // 1 .. 28, 29, 30, 31
+                "weekday": (+date.getDay() % 7), // 1, 2, 3, 4, 5, 6, 0
+                "hour": +date.getHours(), // HH24, 0 .. 23
+                "minute": (+date.getMinutes() % 60), // 0 .. 59
                 //"second": +date.getSeconds(),
             };
         }
